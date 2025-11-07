@@ -111,9 +111,16 @@ class ApiBaseCommand extends CommandBase
         // Acquia PHP SDK cannot set the Accept header itself because it would break
         // API calls returning octet streams (e.g., db backups). It's safe to use
         // here because the API command should always return JSON.
-        $acquiaCloudClient->addOption('headers', [
+        // If this endpoint defines a request body (even optional), ensure a
+        // Content-Type header is sent. Some API endpoints require the header to
+        // be present even when no body parameters are supplied by the user.
+        $headers = [
             'Accept' => 'application/hal+json, version=2',
-        ]);
+        ];
+        if (!empty($this->postParams)) {
+            $headers['Content-Type'] = 'application/json';
+        }
+        $acquiaCloudClient->addOption('headers', $headers);
 
         try {
             if ($this->output->isVeryVerbose()) {
